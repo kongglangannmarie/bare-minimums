@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Thai Cafe Inventory</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="screen active">
+  <h1>Thai Cafe on Wheels</h1>
+
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+
+  <button onclick="login()">Login</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="screen">
+
+  <div class="header">
+    <h2>Thai Cafe Inventory</h2>
+  </div>
+
+  <div class="form">
+    <input type="text" id="name" placeholder="Item Name">
+    <input type="date" id="date">
+
+    <input type="number" id="quantity" placeholder="Quantity">
+    <input type="number" id="lowStock" placeholder="Low Stock Limit">
+
+    <select id="unit">
+      <option value="units">Units</option>
+      <option value="lbs">lbs</option>
+      <option value="kg">kg</option>
+      <option value="oz">oz</option>
+      <option value="boxes">Boxes</option>
+      <option value="containers">Containers</option>
+      <option value="bottles">Bottles</option>
+      <option value="bags">Bags</option>
+      <option value="cans">Cans</option>
+      <option value="packs">Packs</option>
+    </select>
+
+    <select id="category">
+      <option value="Vegetables">Vegetables</option>
+      <option value="Meat">Meat</option>
+      <option value="Dry Goods">Dry Goods</option>
+      <option value="Sauces">Sauces</option>
+      <option value="Drinks">Drinks</option>
+    </select>
+
+    <select id="condition">
+      <option>Fresh</option>
+      <option>Good</option>
+      <option>Expiring</option>
+    </select>
+
+    <select id="status">
+      <option>In Stock</option>
+      <option>Low Stock</option>
+      <option>Out</option>
+    </select>
+
+    <input type="text" id="notes" placeholder="Notes (optional)">
+
+    <button onclick="addItem()">Add Item</button>
+  </div>
+
+  <input type="text" id="search" placeholder="Search items..." onkeyup="renderList()">
+
+  <div id="alert"></div>
+
+  <div class="tabs">
+    <button onclick="setFilter('all')" id="tab-all" class="active">All</button>
+    <button onclick="setFilter('low')" id="tab-low">Low Stock</button>
+  </div>
+
+  <div id="inventory-list"></div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
