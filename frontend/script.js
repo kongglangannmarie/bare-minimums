@@ -52,6 +52,23 @@ async function login() {
   }
 }
 
+function logout() {
+  // 1. Remove the secure token from the browser's storage
+  localStorage.removeItem("token");
+  
+  // 2. Clear the username and password input fields
+  document.getElementById("username").value = "";
+  document.getElementById("password").value = "";
+  
+  // 3. Clear the current inventory list from the UI
+  document.getElementById("inventory-list").innerHTML = "";
+  document.getElementById("alert").innerHTML = "";
+  inventory = [];
+  
+  // 4. Send the user back to the login screen
+  showScreen("login-screen");
+}
+
 async function fetchInventory() {
   try {
     // Notice the route is now /ingredients/ without the ID attached!
