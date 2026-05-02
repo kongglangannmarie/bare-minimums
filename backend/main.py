@@ -7,6 +7,7 @@ import bcrypt
 
 from database import supabase
 from schemas import (
+    CategoryResponse,
     IngredientCreate, IngredientResponse, IngredientUpdate, 
     SupplierCreate, SupplierResponse, # Add these back!
     UserCreate, Token  
@@ -100,6 +101,33 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(data={"sub": str(user["user_id"])})
     return {"access_token": access_token, "token_type": "bearer"}
 
+
+# --- CATEGORY ROUTES ---
+@app.get("/categories/", response_model=List[CategoryResponse])
+async def get_categories(current_user_id: int = Depends(get_current_user)):
+    # 1. Fetch ALL categories in the database (Notice we removed the .eq filter!)
+    response = supabase.table("categories").select("*").execute()
+    
+    # 2. If the global table is completely empty, seed the defaults
+    if len(response.data) == 0:
+        default_categories = [
+            # We use 0 as a placeholder "System" user_id so it doesn't belong to a specific person
+            {"user_id": 0, "category_name": "Vegetables"},
+            {"user_id": 0, "category_name": "Meat"},
+            {"user_id": 0, "category_name": "Dry Goods"},
+            {"user_id": 0, "category_name": "Sauces"},
+            {"user_id": 0, "category_name": "Drinks"}
+        ]
+        supabase.table("categories").insert(default_categories).execute()
+        
+        # Re-fetch after inserting
+        response = supabase.table("categories").select("*").execute()
+
+    # 3. Use Python to quickly remove any duplicates in case you already 
+    # created overlapping categories while testing earlier!
+    unique_categories = {cat["category_name"]: cat for cat in response.data}.values()
+    
+    return list(unique_categories)
 
 # --- INVENTORY ROUTES ---
 

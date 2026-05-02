@@ -3,6 +3,7 @@ const API_URL = "http://127.0.0.1:8000";
 
 let inventory = [];
 let currentFilter = "all";
+let categories = [];
 
 
 function showScreen(id) {
@@ -44,6 +45,10 @@ async function login() {
     
     // Save the token locally
     localStorage.setItem("token", data.access_token);
+    
+    showScreen("dashboard");
+    await fetchCategories(); 
+    fetchInventory();
     
     showScreen("dashboard");
     fetchInventory(); 
@@ -90,11 +95,8 @@ async function fetchInventory() {
 }
 
 async function addItem() {
-  const categoryMap = { "Vegetables": 1, "Meat": 2, "Dry Goods": 3, "Sauces": 4, "Drinks": 5 };
-  const selectedCategory = document.getElementById("category").value;
-
   let item = {
-    category_id: categoryMap[selectedCategory] || 1, 
+    category_id: parseInt(document.getElementById("category").value), 
     ingredient_name: document.getElementById("name").value,
     quantity: parseFloat(document.getElementById("quantity").value) || 0,
     unit_of_measurement: document.getElementById("unit").value,
@@ -157,6 +159,36 @@ async function changeQty(id, currentQty, amount) {
   }
 }
 
+async function fetchCategories() {
+  try {
+    const response = await fetch(`${API_URL}/categories/`, {
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) throw new Error("Failed to fetch categories");
+    categories = await response.json();
+    
+    // Grab both the Add Item and Edit Item dropdowns
+    const addDropdown = document.getElementById("category");
+    const editDropdown = document.getElementById("edit-category");
+    
+    // Clear out the hardcoded HTML options
+    addDropdown.innerHTML = "";
+    editDropdown.innerHTML = "";
+    
+    // Populate with dynamic data from the database
+    // Using category_id as the value makes adding/editing items much easier!
+    categories.forEach(cat => {
+      const optionHTML = `<option value="${cat.category_id}">${cat.category_name}</option>`;
+      addDropdown.innerHTML += optionHTML;
+      editDropdown.innerHTML += optionHTML;
+    });
+    
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+  }
+}
+
 function renderList() {
   let list = document.getElementById("inventory-list");
   let alertBox = document.getElementById("alert");
@@ -205,8 +237,9 @@ function renderList() {
       4: "Sauces",
       5: "Drinks"
     };
-    let categoryName = reverseCategoryMap[item.category_id] || "Unknown Category";
-
+    let matchedCategory = categories.find(c => c.category_id === item.category_id);
+    let categoryName = matchedCategory ? matchedCategory.category_name : "Unknown Category";
+    
     // Bind the database's unique ingredient_id to the buttons
     div.innerHTML = `
       <strong>${item.ingredient_name}</strong><br>
@@ -253,15 +286,14 @@ function closeEditModal() {
 
 async function saveEdit() {
   const id = document.getElementById("edit-id").value;
-  const categoryMap = { "Vegetables": 1, "Meat": 2, "Dry Goods": 3, "Sauces": 4, "Drinks": 5 };
 
-  // Gather all the updated values from the modal
   const updates = {
     ingredient_name: document.getElementById("edit-name").value,
     quantity: parseFloat(document.getElementById("edit-quantity").value),
     low_stock_threshold: parseFloat(document.getElementById("edit-lowStock").value),
     unit_of_measurement: document.getElementById("edit-unit").value,
-    category_id: categoryMap[document.getElementById("edit-category").value] || 1
+    // Parse the value directly from the dropdown
+    category_id: parseInt(document.getElementById("edit-category").value) 
   };
 
   try {

@@ -12,6 +12,13 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class CategoryResponse(BaseModel):
+    category_id: int
+    user_id: int
+    category_name: str
+
+    model_config = {"from_attributes": True}
+
 class IngredientBase(BaseModel):
     # Field names must exactly match the database columns
     category_id: int 
