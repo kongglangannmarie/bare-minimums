@@ -123,10 +123,27 @@ async function addItem() {
 
 function setFilter(type) {
   currentFilter = type;
+  
+  // Reset all tabs to inactive
   document.getElementById("tab-all").classList.remove("active");
   document.getElementById("tab-low").classList.remove("active");
+  document.getElementById("tab-history").classList.remove("active");
+  
+  // Set the clicked tab to active
   document.getElementById("tab-" + type).classList.add("active");
-  renderList();
+  
+  // Toggle the visible UI based on the tab
+  if (type === "history") {
+    document.getElementById("search").style.display = "none"; // Hide search bar
+    document.getElementById("inventory-list").style.display = "none";
+    document.getElementById("history-list").style.display = "block";
+    fetchHistory(); // Fetch the new data
+  } else {
+    document.getElementById("search").style.display = "block"; 
+    document.getElementById("inventory-list").style.display = "block";
+    document.getElementById("history-list").style.display = "none";
+    renderList(); // Render normal inventory
+  }
 }
 
 async function deleteItem(id) {
@@ -239,7 +256,7 @@ function renderList() {
     };
     let matchedCategory = categories.find(c => c.category_id === item.category_id);
     let categoryName = matchedCategory ? matchedCategory.category_name : "Unknown Category";
-    
+
     // Bind the database's unique ingredient_id to the buttons
     div.innerHTML = `
       <strong>${item.ingredient_name}</strong><br>
@@ -307,5 +324,51 @@ async function saveEdit() {
     fetchInventory(); // Refresh the list to show changes
   } catch (error) {
     console.error("Failed to save edit:", error);
+  }
+}
+
+async function fetchHistory() {
+  try {
+    const response = await fetch(`${API_URL}/transactions/`, {
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) throw new Error("Failed to fetch history");
+    
+    const transactions = await response.json();
+    const historyList = document.getElementById("history-list");
+    historyList.innerHTML = ""; // Clear old data
+
+    if (transactions.length === 0) {
+      historyList.innerHTML = `<div class="item">No history recorded yet.</div>`;
+      return;
+    }
+
+    transactions.forEach(tx => {
+      // Format the date so it is easy to read
+      let date = new Date(tx.transaction_date).toLocaleString();
+      
+      // Add visual cues for additions vs subtractions
+      let sign = tx.change_amount > 0 ? "+" : "";
+      let color = tx.change_amount > 0 ? "#28c76f" : "#dc3545"; // Green for up, Red for down
+
+      let div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong>${tx.ingredient_name}</strong><br>
+            <small style="color: gray;">${tx.change_type} • ${date}</small>
+          </div>
+          <div style="font-size: 20px; font-weight: bold; color: ${color};">
+            ${sign}${tx.change_amount}
+          </div>
+        </div>
+      `;
+      historyList.appendChild(div);
+    });
+
+  } catch (error) {
+    console.error("Error loading history:", error);
   }
 }

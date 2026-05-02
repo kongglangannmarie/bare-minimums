@@ -228,6 +228,35 @@ async def add_supplier(supplier: SupplierCreate, current_user_id: int = Depends(
         raise HTTPException(status_code=400, detail="Error adding supplier")
     return response.data[0]
 
+
+# --- HISTORY ROUTES ---
+@app.get("/transactions/")
+async def get_transaction_history(current_user_id: int = Depends(get_current_user)):
+    # 1. Fetch the user's ingredients to prove ownership and get their names
+    ingredients_res = supabase.table("ingredients").select("ingredient_id, ingredient_name").eq("user_id", current_user_id).execute()
+    
+    if not ingredients_res.data:
+        return [] # User has no ingredients, therefore no history
+        
+    # Create a quick dictionary to map ID -> Name (e.g., {5: "Carrots"})
+    ingredient_map = {item["ingredient_id"]: item["ingredient_name"] for item in ingredients_res.data}
+    ingredient_ids = list(ingredient_map.keys())
+    
+    # 2. Fetch transactions ONLY for this user's ingredients, sorted newest first
+    tx_res = supabase.table("inventory_transactions") \
+        .select("*") \
+        .in_("ingredient_id", ingredient_ids) \
+        .order("transaction_date", desc=True) \
+        .execute()
+        
+    transactions = tx_res.data
+    
+    # 3. Attach the plain-text ingredient name to each transaction for the frontend
+    for tx in transactions:
+        tx["ingredient_name"] = ingredient_map.get(tx["ingredient_id"], "Unknown Item")
+        
+    return transactions
+
 # --- ALERTS ---
 
 @app.get("/alerts/")
