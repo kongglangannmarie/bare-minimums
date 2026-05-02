@@ -24,7 +24,7 @@
     <button onclick="logout()" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
   </div>
 
-  <div class="form">
+  <div class="form" id="inventory-form">
     <input type="text" id="name" placeholder="Item Name">
     <input type="date" id="date">
 
@@ -76,12 +76,24 @@
   <div class="tabs">
     <button onclick="setFilter('all')" id="tab-all" class="active">All</button>
     <button onclick="setFilter('low')" id="tab-low">Low Stock</button>
-    <button onclick="setFilter('history')" id="tab-history">History</button> 
+    <button onclick="setFilter('history')" id="tab-history">History</button>
+    <button onclick="setFilter('suppliers')" id="tab-suppliers">Suppliers</button> 
   </div>
 
   <div id="inventory-list"></div>
   
   <div id="history-list" style="display: none;"></div>
+
+  <div id="suppliers-section" style="display: none;">
+    <div class="form" style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="text" id="sup-name" placeholder="Supplier Name (Required)">
+      <input type="text" id="sup-phone" placeholder="Phone Number">
+      <input type="email" id="sup-email" placeholder="Email Address">
+      <button onclick="addSupplier()" style="background: #28c76f; color: white; padding: 12px; border: none; border-radius: 10px;">Add Supplier</button>
+    </div>
+    
+    <div id="suppliers-list"></div>
+  </div>
 
   <div id="edit-modal" class="modal">
     <div class="modal-content">

@@ -125,24 +125,36 @@ function setFilter(type) {
   currentFilter = type;
   
   // Reset all tabs to inactive
-  document.getElementById("tab-all").classList.remove("active");
-  document.getElementById("tab-low").classList.remove("active");
-  document.getElementById("tab-history").classList.remove("active");
-  
-  // Set the clicked tab to active
+  document.querySelectorAll(".tabs button").forEach(btn => btn.classList.remove("active"));
   document.getElementById("tab-" + type).classList.add("active");
   
-  // Toggle the visible UI based on the tab
+  // Grab all sections
+  const invForm = document.getElementById("inventory-form");
+  const searchBar = document.getElementById("search");
+  const invList = document.getElementById("inventory-list");
+  const histList = document.getElementById("history-list");
+  const supSec = document.getElementById("suppliers-section");
+
+  // Default: Hide everything
+  if (invForm) invForm.style.display = "none";
+  searchBar.style.display = "none";
+  invList.style.display = "none";
+  if (histList) histList.style.display = "none";
+  supSec.style.display = "none";
+  
+  // Show only what belongs to the current tab
   if (type === "history") {
-    document.getElementById("search").style.display = "none"; // Hide search bar
-    document.getElementById("inventory-list").style.display = "none";
-    document.getElementById("history-list").style.display = "block";
-    fetchHistory(); // Fetch the new data
+    if (histList) histList.style.display = "block";
+    fetchHistory();
+  } else if (type === "suppliers") {
+    supSec.style.display = "block";
+    fetchSuppliers(); // Fetch data when tab is opened
   } else {
-    document.getElementById("search").style.display = "block"; 
-    document.getElementById("inventory-list").style.display = "block";
-    document.getElementById("history-list").style.display = "none";
-    renderList(); // Render normal inventory
+    // 'all' or 'low' stock tabs
+    if (invForm) invForm.style.display = "grid"; // Restore the grid layout
+    searchBar.style.display = "block";
+    invList.style.display = "block";
+    renderList();
   }
 }
 
@@ -370,5 +382,78 @@ async function fetchHistory() {
 
   } catch (error) {
     console.error("Error loading history:", error);
+  }
+}
+
+// --- SUPPLIER LOGIC ---
+
+async function fetchSuppliers() {
+  try {
+    const response = await fetch(`${API_URL}/suppliers/`, {
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) throw new Error("Failed to fetch suppliers");
+    
+    const suppliers = await response.json();
+    const list = document.getElementById("suppliers-list");
+    list.innerHTML = "";
+
+    if (suppliers.length === 0) {
+      list.innerHTML = `<div class="item">No suppliers added yet.</div>`;
+      return;
+    }
+
+    suppliers.forEach(sup => {
+      let div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <strong>${sup.supplier_name}</strong><br>
+        <small style="color: gray;">
+          📞 ${sup.phone_number || "No phone provided"} <br>
+          ✉️ ${sup.email || "No email provided"}
+        </small>
+      `;
+      list.appendChild(div);
+    });
+  } catch (error) {
+    console.error("Error fetching suppliers:", error);
+  }
+}
+
+async function addSupplier() {
+  const nameInput = document.getElementById("sup-name").value;
+  const phoneInput = document.getElementById("sup-phone").value;
+  const emailInput = document.getElementById("sup-email").value;
+
+  if (!nameInput) {
+    alert("Supplier Name is required!");
+    return;
+  }
+
+  const newSupplier = {
+    supplier_name: nameInput,
+    phone_number: phoneInput || null,
+    email: emailInput || null
+  };
+
+  try {
+    const response = await fetch(`${API_URL}/suppliers/`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(newSupplier)
+    });
+
+    if (!response.ok) throw new Error("Failed to add supplier");
+
+    // Clear the form fields
+    document.getElementById("sup-name").value = "";
+    document.getElementById("sup-phone").value = "";
+    document.getElementById("sup-email").value = "";
+
+    // Refresh the list
+    fetchSuppliers();
+  } catch (error) {
+    console.error("Error adding supplier:", error);
   }
 }
