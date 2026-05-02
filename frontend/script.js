@@ -218,10 +218,62 @@ function renderList() {
       <div class="buttons">
         <button onclick="changeQty(${item.ingredient_id}, ${item.quantity}, 1)">＋</button>
         <button onclick="changeQty(${item.ingredient_id}, ${item.quantity}, -1)">－</button>
+        <button onclick="openEditModal(${item.ingredient_id})">✏️</button> 
         <button onclick="deleteItem(${item.ingredient_id})">🗑️</button>
       </div>
     `;
 
     list.appendChild(div);
   });
+}
+
+function openEditModal(id) {
+  // Find the exact item in our local array
+  const item = inventory.find(i => i.ingredient_id === id);
+  if (!item) return;
+
+  // Populate the form fields with the current data
+  document.getElementById("edit-id").value = item.ingredient_id;
+  document.getElementById("edit-name").value = item.ingredient_name;
+  document.getElementById("edit-quantity").value = item.quantity;
+  document.getElementById("edit-lowStock").value = item.low_stock_threshold;
+  document.getElementById("edit-unit").value = item.unit_of_measurement;
+
+  // Convert the category ID back to text for the dropdown
+  const reverseCategoryMap = { 1: "Vegetables", 2: "Meat", 3: "Dry Goods", 4: "Sauces", 5: "Drinks" };
+  document.getElementById("edit-category").value = reverseCategoryMap[item.category_id] || "Vegetables";
+
+  // Show the modal
+  document.getElementById("edit-modal").classList.add("active");
+}
+
+function closeEditModal() {
+  document.getElementById("edit-modal").classList.remove("active");
+}
+
+async function saveEdit() {
+  const id = document.getElementById("edit-id").value;
+  const categoryMap = { "Vegetables": 1, "Meat": 2, "Dry Goods": 3, "Sauces": 4, "Drinks": 5 };
+
+  // Gather all the updated values from the modal
+  const updates = {
+    ingredient_name: document.getElementById("edit-name").value,
+    quantity: parseFloat(document.getElementById("edit-quantity").value),
+    low_stock_threshold: parseFloat(document.getElementById("edit-lowStock").value),
+    unit_of_measurement: document.getElementById("edit-unit").value,
+    category_id: categoryMap[document.getElementById("edit-category").value] || 1
+  };
+
+  try {
+    await fetch(`${API_URL}/ingredients/${id}`, {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(updates)
+    });
+    
+    closeEditModal();
+    fetchInventory(); // Refresh the list to show changes
+  } catch (error) {
+    console.error("Failed to save edit:", error);
+  }
 }

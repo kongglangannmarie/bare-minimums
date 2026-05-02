@@ -27,7 +27,11 @@ class IngredientCreate(IngredientBase):
     pass
 
 class IngredientUpdate(BaseModel):
+    category_id: Optional[int] = None
+    ingredient_name: Optional[str] = None
     quantity: Optional[float] = None
+    unit_of_measurement: Optional[str] = None
+    low_stock_threshold: Optional[float] = None
     is_active: Optional[bool] = None
 
 class IngredientResponse(IngredientBase):

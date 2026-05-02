@@ -80,6 +80,42 @@
 
   <div id="inventory-list"></div>
 
+  <div id="edit-modal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Item</h3>
+      <input type="hidden" id="edit-id">
+      
+      <input type="text" id="edit-name" placeholder="Item Name">
+      <input type="number" id="edit-quantity" placeholder="Quantity">
+      <input type="number" id="edit-lowStock" placeholder="Low Stock Limit">
+      
+      <select id="edit-unit">
+        <option value="units">Units</option>
+        <option value="lbs">lbs</option>
+        <option value="kg">kg</option>
+        <option value="oz">oz</option>
+        <option value="boxes">Boxes</option>
+        <option value="containers">Containers</option>
+        <option value="bottles">Bottles</option>
+        <option value="bags">Bags</option>
+        <option value="cans">Cans</option>
+        <option value="packs">Packs</option>
+      </select>
+
+      <select id="edit-category">
+        <option value="Vegetables">Vegetables</option>
+        <option value="Meat">Meat</option>
+        <option value="Dry Goods">Dry Goods</option>
+        <option value="Sauces">Sauces</option>
+        <option value="Drinks">Drinks</option>
+      </select>
+
+      <div class="modal-buttons">
+        <button onclick="saveEdit()" style="background: #28c76f;">Save</button>
+        <button onclick="closeEditModal()" style="background: #dc3545;">Cancel</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="script.js"></script>
