@@ -2,6 +2,16 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
 
+# --- NEW AUTH SCHEMAS ---
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    business_name: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
 class IngredientBase(BaseModel):
     # Field names must exactly match the database columns
     category_id: int 
@@ -13,7 +23,8 @@ class IngredientBase(BaseModel):
     is_active: bool = True
     
 class IngredientCreate(IngredientBase):
-    user_id: int
+    # REMOVED user_id: We will get this from the Auth Token!
+    pass
 
 class IngredientUpdate(BaseModel):
     quantity: Optional[float] = None
@@ -23,7 +34,6 @@ class IngredientResponse(IngredientBase):
     ingredient_id: int
     user_id: int
     last_updated: Optional[datetime] = None
-
     model_config = {"from_attributes": True}
 
 # Supplier models remain the same...
@@ -33,7 +43,7 @@ class SupplierBase(BaseModel):
     email: Optional[EmailStr] = None 
 
 class SupplierCreate(SupplierBase):
-    user_id: int 
+    pass
 
 class SupplierResponse(SupplierBase):
     supplier_id: int

@@ -1,0 +1,8 @@
+fastapi[all]
+supabase
+python-dotenv
+pydantic[email]
+pytest
+httpx
+passlib
+python-jose

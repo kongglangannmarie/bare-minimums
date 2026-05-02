@@ -1,23 +1,70 @@
 const API_URL = "http://127.0.0.1:8000"; 
-const USER_ID = 999; // Using the test user ID we created in the database
+// const USER_ID = 999; // Using the test user ID we created in the database
 
 let inventory = [];
 let currentFilter = "all";
+
 
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
-function login() {
-  showScreen("dashboard");
-  fetchInventory(); // Pull real data from the backend upon login
+// Helper function to get the token for secure requests
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}` // This validates the user on the backend
+  };
+}
+
+async function login() {
+  const email = document.getElementById("username").value; // Using email as username
+  const password = document.getElementById("password").value;
+
+  // FastAPI OAuth2 requires form data, not JSON
+  const formData = new URLSearchParams();
+  formData.append("username", email);
+  formData.append("password", password);
+
+  try {
+    const response = await fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData
+    });
+
+    if (!response.ok) {
+      alert("Invalid email or password");
+      return;
+    }
+
+    const data = await response.json();
+    
+    // Save the token locally
+    localStorage.setItem("token", data.access_token);
+    
+    showScreen("dashboard");
+    fetchInventory(); 
+  } catch (error) {
+    console.error("Login failed:", error);
+  }
 }
 
 async function fetchInventory() {
   try {
-    const response = await fetch(`${API_URL}/ingredients/${USER_ID}`);
-    if (!response.ok) throw new Error("Network response was not ok");
+    // Notice the route is now /ingredients/ without the ID attached!
+    const response = await fetch(`${API_URL}/ingredients/`, {
+      headers: getAuthHeaders()
+    });
+    
+    if (response.status === 401) {
+       alert("Your session expired. Please log in again.");
+       showScreen("login-screen");
+       return;
+    }
+    
     inventory = await response.json();
     renderList();
   } catch (error) {
@@ -26,20 +73,10 @@ async function fetchInventory() {
 }
 
 async function addItem() {
-  // Map the string category from the HTML to the integer ID your DB expects
-  const categoryMap = {
-    "Vegetables": 1,
-    "Meat": 2,
-    "Dry Goods": 3,
-    "Sauces": 4,
-    "Drinks": 5
-  };
-  
+  const categoryMap = { "Vegetables": 1, "Meat": 2, "Dry Goods": 3, "Sauces": 4, "Drinks": 5 };
   const selectedCategory = document.getElementById("category").value;
 
-  // Build the payload matching the exact database column names
   let item = {
-    user_id: USER_ID,
     category_id: categoryMap[selectedCategory] || 1, 
     ingredient_name: document.getElementById("name").value,
     quantity: parseFloat(document.getElementById("quantity").value) || 0,
@@ -51,16 +88,14 @@ async function addItem() {
   try {
     await fetch(`${API_URL}/ingredients/`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(), // Secure header!
       body: JSON.stringify(item)
     });
     
-    // Clear the form inputs after successfully adding
     document.getElementById("name").value = "";
     document.getElementById("quantity").value = "";
     document.getElementById("lowStock").value = "";
     
-    // Refresh the list to show the new item
     fetchInventory();
   } catch (error) {
     console.error("Failed to add item:", error);
@@ -79,7 +114,8 @@ async function deleteItem(id) {
   if (confirm("Delete this item?")) {
     try {
       await fetch(`${API_URL}/ingredients/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: getAuthHeaders()
       });
       fetchInventory();
     } catch (error) {
@@ -93,10 +129,9 @@ async function changeQty(id, currentQty, amount) {
   if (newQty < 0) newQty = 0;
 
   try {
-    // We only need to patch the quantity field
     await fetch(`${API_URL}/ingredients/${id}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(), 
       body: JSON.stringify({ quantity: newQty }) 
     });
     fetchInventory();
