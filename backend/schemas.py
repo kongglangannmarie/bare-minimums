@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    business_name: Optional[str] = None
 
 class CategoryResponse(BaseModel):
     category_id: int

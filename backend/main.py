@@ -99,7 +99,11 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     
     # Issue a token using their user_id
     access_token = create_access_token(data={"sub": str(user["user_id"])})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "business_name": user.get("business_name")
+    }
 
 
 # --- CATEGORY ROUTES ---
