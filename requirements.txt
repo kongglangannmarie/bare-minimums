@@ -6,3 +6,4 @@ pytest
 httpx
 passlib
 python-jose
+bcrypt
