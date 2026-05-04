@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Inventory Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="dashboard">
+
+  <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 id="business-name-heading">Inventory Tracker</h2>
+    <button onclick="logout()" style="padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">Logout</button>
+  </div>
+
+  <div class="form" id="inventory-form">
+    <input type="text" id="name" placeholder="Item Name">
+    <input type="date" id="date">
+
+    <input type="number" id="quantity" placeholder="Quantity">
+    <input type="number" id="lowStock" placeholder="Low Stock Limit">
+
+    <select id="unit">
+      <option value="units">Units</option>
+      <option value="lbs">lbs</option>
+      <option value="kg">kg</option>
+      <option value="oz">oz</option>
+      <option value="boxes">Boxes</option>
+      <option value="containers">Containers</option>
+      <option value="bottles">Bottles</option>
+      <option value="bags">Bags</option>
+      <option value="cans">Cans</option>
+      <option value="packs">Packs</option>
+    </select>
+
+    <select id="category">
+      <option value="Vegetables">Vegetables</option>
+      <option value="Meat">Meat</option>
+      <option value="Dry Goods">Dry Goods</option>
+      <option value="Sauces">Sauces</option>
+      <option value="Drinks">Drinks</option>
+    </select>
+
+    <select id="condition">
+      <option>Fresh</option>
+      <option>Good</option>
+      <option>Expiring</option>
+    </select>
+
+    <select id="status">
+      <option>In Stock</option>
+      <option>Low Stock</option>
+      <option>Out</option>
+    </select>
+
+    <input type="text" id="notes" placeholder="Notes (optional)">
+
+    <button onclick="addItem()">Add Item</button>
+  </div>
+
+  <input type="text" id="search" placeholder="Search items..." onkeyup="renderList()">
+
+  <div id="alert"></div>
+
+  <div class="tabs">
+    <button onclick="setFilter('all')" id="tab-all" class="active">All</button>
+    <button onclick="setFilter('low')" id="tab-low">Low Stock</button>
+    <button onclick="setFilter('history')" id="tab-history">History</button>
+    <button onclick="setFilter('suppliers')" id="tab-suppliers">Suppliers</button> 
+  </div>
+
+  <div id="inventory-list"></div>
+  
+  <div id="history-list" style="display: none;"></div>
+
+  <div id="suppliers-section" style="display: none;">
+    <div class="form" style="display: flex; flex-direction: column; gap: 10px;">
+      <input type="text" id="sup-name" placeholder="Supplier Name (Required)">
+      <input type="text" id="sup-phone" placeholder="Phone Number">
+      <input type="email" id="sup-email" placeholder="Email Address">
+      <button onclick="addSupplier()" style="background: #28c76f; color: white; padding: 12px; border: none; border-radius: 10px;">Add Supplier</button>
+    </div>
+    
+    <div id="suppliers-list"></div>
+  </div>
+
+  <div id="edit-modal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Item</h3>
+      <input type="hidden" id="edit-id">
+      
+      <input type="text" id="edit-name" placeholder="Item Name">
+      <input type="number" id="edit-quantity" placeholder="Quantity">
+      <input type="number" id="edit-lowStock" placeholder="Low Stock Limit">
+      
+      <select id="edit-unit">
+        <option value="units">Units</option>
+        <option value="lbs">lbs</option>
+        <option value="kg">kg</option>
+        <option value="oz">oz</option>
+        <option value="boxes">Boxes</option>
+        <option value="containers">Containers</option>
+        <option value="bottles">Bottles</option>
+        <option value="bags">Bags</option>
+        <option value="cans">Cans</option>
+        <option value="packs">Packs</option>
+      </select>
+
+      <select id="edit-category">
+        <option value="Vegetables">Vegetables</option>
+        <option value="Meat">Meat</option>
+        <option value="Dry Goods">Dry Goods</option>
+        <option value="Sauces">Sauces</option>
+        <option value="Drinks">Drinks</option>
+      </select>
+
+      <div class="modal-buttons">
+        <button onclick="saveEdit()" style="background: #28c76f;">Save</button>
+        <button onclick="closeEditModal()" style="background: #dc3545;">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

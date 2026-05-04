@@ -5,6 +5,13 @@ let inventory = [];
 let currentFilter = "all";
 let categories = [];
 
+function setBusinessNameHeading() {
+  const heading = document.getElementById("business-name-heading");
+  if (!heading) return;
+  const savedName = localStorage.getItem("business_name");
+  heading.textContent = savedName && savedName.trim() ? savedName : "Inventory Tracker";
+}
+
 
 function showScreen(id) {
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
@@ -37,42 +44,92 @@ async function login() {
     });
 
     if (!response.ok) {
-      alert("Invalid email or password");
+      // Try to extract useful error information from JSON body when available
+      let errText = "Invalid email or password";
+      try {
+        const err = await response.json();
+        if (err && err.detail) errText = err.detail;
+      } catch (e) {}
+      alert(errText);
       return;
     }
 
     const data = await response.json();
-    
+
+    if (!data || !data.access_token) {
+      console.error("Login response missing access_token:", data);
+      alert("Login failed: unexpected server response");
+      return;
+    }
+
     // Save the token locally
     localStorage.setItem("token", data.access_token);
-    
-    showScreen("dashboard");
-    await fetchCategories(); 
-    fetchInventory();
-    
-    showScreen("dashboard");
-    fetchInventory(); 
+    if (data.business_name) {
+      localStorage.setItem("business_name", data.business_name);
+    }
+
+    // Prefetch required data
+    try {
+      await Promise.all([fetchCategories(), fetchInventory()]);
+    } catch (e) {
+      console.warn("Prefetch failed after login:", e);
+    }
+
+    // Redirect to dedicated dashboard page
+    window.location.href = "dashboard.html";
   } catch (error) {
     console.error("Login failed:", error);
+    alert("Network error during login. Check the backend is running at " + API_URL);
   }
 }
 
 function logout() {
   // 1. Remove the secure token from the browser's storage
   localStorage.removeItem("token");
+  localStorage.removeItem("business_name");
   
   // 2. Clear the username and password input fields
-  document.getElementById("username").value = "";
-  document.getElementById("password").value = "";
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+  if (usernameInput) usernameInput.value = "";
+  if (passwordInput) passwordInput.value = "";
   
   // 3. Clear the current inventory list from the UI
-  document.getElementById("inventory-list").innerHTML = "";
-  document.getElementById("alert").innerHTML = "";
+  const inventoryList = document.getElementById("inventory-list");
+  const alertBox = document.getElementById("alert");
+  if (inventoryList) inventoryList.innerHTML = "";
+  if (alertBox) alertBox.innerHTML = "";
   inventory = [];
   
   // 4. Send the user back to the login screen
-  showScreen("login-screen");
+  // Redirect to the login page on logout
+  window.location.href = "index.html";
 }
+
+// On page load: protect dashboard and auto-redirect if already authenticated
+document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('token');
+  const isDashboardPage = !!document.getElementById('dashboard');
+
+  if (isDashboardPage) {
+    // If there's no token, send user back to login
+    if (!token) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    setBusinessNameHeading();
+
+    // Populate initial data
+    fetchCategories().catch(() => {});
+    fetchInventory().catch(() => {});
+  } else {
+    // On the login page: if user already has a token, send them to dashboard
+    if (token) {
+      window.location.href = 'dashboard.html';
+    }
+  }
+});
 
 async function fetchInventory() {
   try {
@@ -83,7 +140,9 @@ async function fetchInventory() {
     
     if (response.status === 401) {
        alert("Your session expired. Please log in again.");
-       showScreen("login-screen");
+       localStorage.removeItem("token");
+       localStorage.removeItem("business_name");
+       window.location.href = "index.html";
        return;
     }
     

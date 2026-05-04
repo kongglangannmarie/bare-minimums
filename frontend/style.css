@@ -144,6 +144,7 @@ a {
   display: flex;
   margin-top: 12px;
   gap: 10px;
+  padding: 8px;
   flex-wrap: wrap;
 }
 
@@ -403,5 +404,35 @@ a {
 
   .buttons button {
     flex: 1 1 100%;
+  }
+}
+
+/* Dashboard specific spacing: ensure there's comfortable space at the bottom
+   so the search bar, lists, and buttons never touch the viewport edge. */
+#dashboard {
+  padding-bottom: 96px; /* desktop/tablet default */
+}
+
+#inventory-list,
+#history-list,
+#suppliers-section {
+  margin-bottom: 18px;
+  padding-bottom: 6px;
+}
+
+.item {
+  margin-bottom: 18px; /* extra breathing room between items */
+}
+
+@media (max-width: 720px) {
+  /* On smaller phones, increase bottom padding to account for virtual keyboards
+     and bottom safe areas on devices with notches/home indicators. */
+  #dashboard {
+    padding-bottom: 140px;
+  }
+
+  /* Give the inventory form and search more space at the bottom */
+  .form {
+    margin-bottom: 12px;
   }
 }
